@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-
 SIZE_PACKET = 267037
+
 VERSION     = 'HTTP/1.1'
-METHOD      = 'GET'
 
 STATUSES = {
 	200: 'OK',
