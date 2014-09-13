@@ -5,15 +5,12 @@ import datetime
 import os
 import urllib
 from threading import Thread
-from multiprocessing import Process
-from multiprocessing import Pool
 from discription import STATUSES, CONTENT_TYPE, SIZE_PACKET, VERSION
 
 def get_pars_headers_one(data):
         indexFirst = data.index(' ')
         indexLast = data.rindex(' ')
         return data[0:indexFirst], data[indexFirst + 1:indexLast], data[indexLast - 1:]  
-
 
 def get_response(status, content_type, response_data, method):
         con_type = ''
@@ -30,7 +27,6 @@ def get_response(status, content_type, response_data, method):
         response += 'Connection: close\r\n'
 
         return response, response_data, method
-
 
 def parse_request(data):
         try:
@@ -76,7 +72,6 @@ def parse_request(data):
         except:
                 return get_response(404, 'html', '___404___', 'GET')
 
-
 def thread_fun(client_socket):
         request = client_socket.recv(SIZE_PACKET)
         response_headers, response_data, method = parse_request(request)
@@ -91,8 +86,7 @@ def start_new_thread(client_socket):
         print('start thread')
         thread = Thread(target=thread_fun, args=(client_socket,))
         thread.start()
-
-        
+   
 def httpServerStart():
         hostname = 'localhost'
         port = 8080
@@ -101,7 +95,7 @@ def httpServerStart():
         server_socket.bind((hostname, port))
         server_socket.listen(10)
 
-        while 1:
+        while True:
                 client_socket, client_data = server_socket.accept()
                 start_new_thread(client_socket)
            
