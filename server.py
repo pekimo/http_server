@@ -4,6 +4,7 @@ import socket
 import datetime
 import os
 import urllib
+import multiprocessing as mp
 from threading import Thread
 from discription import STATUSES, CONTENT_TYPE, SIZE_PACKET, VERSION
 
@@ -79,24 +80,37 @@ def thread_fun(client_socket):
         client_socket.send('\r\n')
         if 'GET' in method:
                 client_socket.send(response_data)
-        client_socket.close()
-        print('closed client socket')       
-                
+   
 def start_new_thread(client_socket):
         print('start thread')
         thread = Thread(target=thread_fun, args=(client_socket,))
         thread.start()
+
+def worker(socket):
+         while True:
+                client_socket, client_data = socket.accept()
+                start_new_thread(client_socket)
+                client_socket.close()
+
    
 def httpServerStart():
+        num_workers = mp.cpu_count()
+
         hostname = 'localhost'
-        port = 8080
+        port = 80
+
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server_socket.bind((hostname, port))
-        server_socket.listen(10)
+        server_socket.listen(5)
 
-        while True:
-                client_socket, client_data = server_socket.accept()
-                start_new_thread(client_socket)
-           
-httpServerStart()
+        workers = [mp.Process(target=worker, args=(server_socket,)) for i in
+            range(num_workers)]
+
+        for p in workers:
+                p.daemon = True
+                print('start ', p)
+                p.start()
+
+if __name__ == '__main__':      
+        httpServerStart()
