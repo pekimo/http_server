@@ -77,40 +77,35 @@ def thread_fun(client_socket):
         request = client_socket.recv(SIZE_PACKET)
         response_headers, response_data, method = parse_request(request)
         client_socket.send(response_headers)
-        client_socket.send('\r\n')
+        client_socket.send('\r\n')  
         if 'GET' in method:
                 client_socket.send(response_data)
+        client_socket.close()
    
-def start_new_thread(client_socket):
-        print('start thread')
-        thread = Thread(target=thread_fun, args=(client_socket,))
-        thread.start()
-
 def worker(socket):
-         while True:
+        while True:
                 client_socket, client_data = socket.accept()
-                start_new_thread(client_socket)
-                client_socket.close()
+                thread = Thread(target=thread_fun, args=(client_socket,))
+                thread.start()
+                thread._Thread__stop()
+                print(thread)
 
-   
-def httpServerStart():
+
+if __name__ == '__main__':
+      
         num_workers = mp.cpu_count()
 
+        print('Cpu_Count: ' + str(num_workers))
+
         hostname = 'localhost'
-        port = 80
+        port = 8080
 
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server_socket.bind((hostname, port))
-        server_socket.listen(5)
+        server_socket.listen(10)
+ 
+        for i in range(num_workers):
+                process = mp.Process(target=worker, args=(server_socket,) )
+                process.start()
 
-        workers = [mp.Process(target=worker, args=(server_socket,)) for i in
-            range(num_workers)]
-
-        for p in workers:
-                p.daemon = True
-                print('start ', p)
-                p.start()
-
-if __name__ == '__main__':      
-        httpServerStart()
